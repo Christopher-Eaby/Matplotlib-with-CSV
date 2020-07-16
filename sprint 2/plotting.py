@@ -8,11 +8,10 @@ Created on Thu Jul  9 10:02:09 2020
 @author: Chris
 """
 
-#import csv
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-#import MySQLdb
+import sqlite3 as sql
 
 #intalizing the rows, columns and data for the dataframe
 dat = ['Simba', 'Lays'], ['Coke', 'Fanta'], ['Cadbury', 'Tex'], ['Pepper Steak', 'Chicken'], ['Pear', 'Apple', 'Orange'], ['Vanilla', 'Choclate'], ['Spinach', 'Cabbage']
@@ -23,22 +22,26 @@ column = ['Item 1', 'Item 2', 'Item 3']
 df = pd.DataFrame(data = dat, index = rows, columns = column)
 #saves all the data from the dataframe to a csv file
 df.to_csv("Items1.csv")
+#creates a connection between the database and the python file
+connection = sql.connect("sprint3.db") 
+#allows the python file to execute SQL queries
+crsr = connection.cursor() 
 
-"""
-My MySQL didn't want to install correctly and I tried everything, so I just found 
-another way and commented out the things that didn't work
+#function to create a new table if there isn't already one
+def create_tables(): 
+    crsr.execute('CREATE TABLE IF NOT EXISTS Items(Item1 TEXT, Item2 TEXT, Item3 TEXT)')
+create_tables()
 
-mydb = MySQLdb.connect(host='localhost', user='root', passwd='', db='dbdb')
-cursor = mydb.cursor()
-
-csv_data = csv.reader(file('Items1.csv'))
-csv_data1 = csv.reader(file('stocks.csv'))
-"""
+def data_entry(item1, item2, item3): 
+    crsr.execute("INSERT INTO Items (Item1, Item2, Item3) VALUES(?, ?, ?)", (item1, item2, item3))  
+    connection.commit() 
+    
+for x in (df.index):
+    data_entry(df['Item 1'][x], df['Item 2'][x], df['Item 3'][x])
 
 #imports the info from the csv files and saves them into a list in the data variables
 data1 = np.genfromtxt("stocks.csv", delimiter=",", names = ["Type", "chips", "cooldrinks", "pies", "fruit", "cupcakes", "veggies"])
 data = np.genfromtxt("Items1.csv", delimiter=",", names = ["Type", "1", "2", "3",])
-print(data1)
 #labels the different axes and changes the color and font size
 plt.xlabel('Week', {'color':'red', 'fontsize':15})
 plt.ylabel('Stock', {'color':'red', 'fontsize':15})
